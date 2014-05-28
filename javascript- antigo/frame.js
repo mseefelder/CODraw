@@ -1,7 +1,3 @@
-<canvas id="canv" style="border:1px dotted" width="300" height="225"></canvas>
-<script src="192.168.0.100:8080/socket.io/socket.io.js"></script>
-
-<script>
 //Code to manage our canvas.
 /*
 	For now it draws many circles while the LMB is pressed.
@@ -18,14 +14,15 @@ turn false.
 */
 
 //socket initialization:
-var socket = io.connect('192.168.0.100:3001'); 
+/*
+var socket = io.connect('http://localhost:3001'); 
 
 socket.on('Welcome', function () { 
 	console.log('Welcome, dude!'); 
 	//socket.emit('my other event', { my: 'data' }); 
 	socket.send('Awww, yis!');
 }); 
-
+*/
 var canvas = document.getElementById('canv');
 var frame = canvas.getContext('2d');
 var isDraw = false;
@@ -109,7 +106,7 @@ function mainloop(){
 	if (isDraw) drawBrush(mouse.x,mouse.y);
 }
 
-setInterval(update, 1);
+setInterval(update, 1000);
 
 
 /*EXTRAS:
@@ -118,4 +115,3 @@ diveintohtml5.info/canvas.html
 Image Data:
 http://www.w3schools.com/tags/canvas_putimagedata.asp
 */
-</script>

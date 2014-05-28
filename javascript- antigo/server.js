@@ -28,10 +28,11 @@ io.sockets.on('connection', function (socket) {
 */
 
 var io = require('socket.io').listen(3001); 
+console.log("Bud");
 var express = require('express'); 
 var app = express();
 
-var id = 1;
+var id = 0;
 counter = 0;
 var artists = [];
 var canvas = [];
@@ -58,16 +59,25 @@ io.sockets.on('connection', function (socket) {
   });
 
   socket.on('stroke', function(data){
-    artists[data[0]].buffer.push(data[1]);  
+    artists[data[0]].buffer.push(data[1]);
+    socket.broadcast.emit(data[1]);  
   });
 });
 
 app.get('/', function(req, res){
-  res.sendfile("index.html");
+  res.sendfile("index-novo.html");
+  //res.sendfile("./socket.io/socket.io.js");
  });
-
+/*
 function update(){
-  
+  if (counter == id){ 
+    socket.emit('Canvas', canvas);
+    counter = 0;
+  }
+  if (!artists[id].isempty) canvas.push(artists[id].buffer.shift());
+  counter ++;
 }
 
+setInterval(update, 1);
+*/
 app.listen(8080);
