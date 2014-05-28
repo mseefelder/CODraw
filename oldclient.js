@@ -1,5 +1,5 @@
 <canvas id="canv" style="border:1px dotted" width="300" height="225"></canvas>
-<script src="192.168.0.100:8080/socket.io/socket.io.js"></script>
+<script src="http://localhost:3001/socket.io/socket.io.js"></script>
 
 <script>
 //Code to manage our canvas.
@@ -18,7 +18,7 @@ turn false.
 */
 
 //socket initialization:
-var socket = io.connect('192.168.0.100:3001'); 
+var socket = io.connect('http://localhost:3001'); 
 
 socket.on('Welcome', function () { 
 	console.log('Welcome, dude!'); 
