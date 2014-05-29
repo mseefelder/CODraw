@@ -6,12 +6,15 @@
 #include<string.h>    //strlen
 #include<sys/socket.h>    //socket
 #include<arpa/inet.h> //inet_addr
+
 #define MESSAGESIZE 2000;
+
+typedef enum{false,true} bool; 
  
 int main(int argc , char *argv[])
 {
-    bool ableto_write = 0;
-    bool message_sent = 0;  //new!
+    bool ableto_write = false;
+    bool message_sent = false;  //new!
     int sock;
     int msgtype;
     int size;
@@ -40,20 +43,27 @@ int main(int argc , char *argv[])
     puts("Connected\n");
 
     msgtype = 0;
-    while(msgtype != 2)
+    while(msgtype != 1)
     {
         size = recv(sock , server_reply , MESSAGESIZE , 0);
         printf("OK %d\n", size);
         if(size > 0)
         {
-            printf("OK msg\n");
-            if(server_reply[0] == '1' || server_reply[0] == '2')
+            if(server_reply[0] == '0')
             {
-                printf("\n SERVER: %s\n", server_reply);
+                printf("\n SERVER: %s\n", server_reply); //server greetings, asking for user's nickname
                 msgtype++;
+                scanf("%s" , message);
+                if(send(sock , message , strlen(message) , 0) < 0)   //user sending nickname to server
+                {
+                    puts("Send failed");
+                    return 1;
+                }
             }
         }
-    }
+        memset(&message[0], 0, sizeof(message));
+    }    
+
     
     //keep communicating with server
     while(1)
@@ -72,8 +82,8 @@ int main(int argc , char *argv[])
                 return 1;
             }
         
-            int message_size = (int) sizeof(message);
-            printf("%d\n", message_size);
+            //int message_size = (int) sizeof(message);
+            //printf("%d\n", message_size);
         }    
 
         //Receive a reply from the server
@@ -88,9 +98,9 @@ int main(int argc , char *argv[])
         { 
             if(server_reply[0] == '1')  //send acknowledge, server received client's message  (server_reply = 1) ~ou algo parecido
             {
-                message_sent = 1;
+                message_sent = true;
             }
-            else if (server_reply[0] == '2' && message_sent != 1) //broadcast
+            else if (server_reply[0] == '2' && message_sent != true) //broadcast
             {
                 printf("%s\n", server_reply);  // (server_reply = 2 - userN: message)   [this chat can only send once everybody received las sent]
                 strcpy(message, "ack");                                             //  [message. Therefore server_reply contains only one message]
@@ -101,11 +111,11 @@ int main(int argc , char *argv[])
                 }
             else if (server_reply[0] == '3')  // (server_reply = 3) server received all acknowledges
             {
-                ableto_write = 1;
+                ableto_write = true;
             }
             else if (server_reply[0] == '4')  // (server_reply = 4) server is yet to received all acknowledges
             {
-                ableto_write = 0;          
+                ableto_write = false;          
             }
 
         }
@@ -119,3 +129,5 @@ int main(int argc , char *argv[])
     close(sock);
     return 0;
 }
+
+
