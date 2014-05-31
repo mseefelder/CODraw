@@ -57,7 +57,7 @@ Node *newList()
 //Get number of elements:
 int getSize(Node *t)
 {
-  return t->user.socket;
+  return t->user.sock;
 }
 
 //Insert node:-----------------------------

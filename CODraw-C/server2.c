@@ -6,9 +6,10 @@
 #include<unistd.h>
 #include<pthread.h>
 #include<linkedlist.h>
+#include <semaphore.h>
 
-#define USERNAME_SIZE 20;
-#define MESSAGE_SIZE 2000;
+#define USERNAME_SIZE 20
+#define MESSAGE_SIZE 2000
 
 typedef struct
 {
@@ -21,7 +22,8 @@ typedef struct
 
 //Declaring the Thread Handler and Broadcast Functions 
 void *connection_handler(void *);
-void broadcast(int);
+void broadcast(int *socket, char *message, int messageSize);
+void sendToAll(messageCall myMessage);
 Node *socket_list;
 
 pthread_mutex_t send_mutex;       /*stops other threads from broadcasting when one is already doing it */
@@ -112,19 +114,19 @@ int main(int argc , char *argv[])
 void *connection_handler(void *socket_desc)
 {
     //Declaring Socket Descriptor and Some Other Stuff
-    int sock = *(int*)socket_desc;
+    int sock = *(int*)socket_desc, read_size;
     char username[USERNAME_SIZE], server_message[MESSAGE_SIZE], client_message[MESSAGE_SIZE];
     User new_user;
 
     //First Message of Connection
     strcpy(server_message, "Welcome to the Koi Fish Messenger! Enter your Username:\n");
     send(sock, server_message, strlen(server_message), 0);
-
+    
     //Receives 
     if(read_size = recv(sock, username, USERNAME_SIZE, 0) > 0)
     {
         new_user.sock = sock;
-        new_user.name = username;
+        srtcpy(new_user.name, username);
         insert(&socket_list, &new_user);
     }
 
@@ -156,7 +158,7 @@ void *connection_handler(void *socket_desc)
 
     }
 }
-
+// broadcast(&sock, &client_message[0], messageSize)
 void broadcast(int *socket, char *message, int messageSize)
 {  
     //Declaring the message element. The struct is defined up in the code
@@ -166,14 +168,14 @@ void broadcast(int *socket, char *message, int messageSize)
     myMessage.messageSize = messageSize;
     myMessage.numOfSocks = getSize(socket_list);
     
-
+    int i;
     //for each socket in the socket list: create a thread
     for(i = myMessage.numOfSocks; i > -1; i--)
     {
         myMessage.index = i;
         pthread_t broadcaster;
         //This function receives a copy of the struct because this struct changes for every for loop;
-        pthread_create(&broadcaster, NULL,  sendToAll, myMessage);
+        pthread_create(&broadcaster, NULL,  sendToAll, &myMessage);
 
         //Do we have to join threads? No because it would kill paralelism! (if I got it right, haha)
         //See this for an explanation: http://pubs.opengroup.org/onlinepubs/7908799/xsh/pthread_join.html
@@ -191,7 +193,7 @@ void sendToAll(messageCall myMessage)
     int number = (myMessage.numOfSocks) - 1;
 
     //if socket is the broadcaster, do nothing
-    if(socket != myMessage.socket)
+    if(socket != myMessage.sock)
     {
         //send message. Note that myMessage.message is a char*, don't know if will work
         //if not, we have to find a way to make it into a char [MESSAGE_SIZE]
@@ -216,24 +218,4 @@ void sendToAll(messageCall myMessage)
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
