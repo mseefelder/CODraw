@@ -54,6 +54,12 @@ Node *newList()
   return newNode;
 }
 
+//Get number of elements:
+int getSize(Node *t)
+{
+  return t->user.socket;
+}
+
 //Insert node:-----------------------------
 ReturnCode insert(Node **t, User *a) //includes user 'a' in list 't' 
 {
