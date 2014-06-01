@@ -102,10 +102,7 @@ void *connection_handler(void *socket_desc)
     while(1)
     {
         //Send the message back to client
-        receive_counter = 0
-        while(receive_counter == 0){
-            (read_size = recv(sock , client_message , 2000 , 0)) > 0 
-        }
+        recv(sock , client_message , 2000 , 0);
 
         printf("OK %d\n", read_size);
         send(sock , client_message , strlen(client_message), 0);

@@ -5,7 +5,7 @@
 #include<arpa/inet.h>
 #include<unistd.h>
 #include<pthread.h>
-#include<linkedlist.h>
+#include"lib/linkedlist.h"
 #include <semaphore.h>
 
 #define USERNAME_SIZE 20
@@ -23,7 +23,7 @@ typedef struct
 //Declaring the Thread Handler and Broadcast Functions 
 void *connection_handler(void *);
 void broadcast(int *socket, char *message, int messageSize);
-void sendToAll(messageCall myMessage);
+void *sendToAll(void *myMessage);
 Node *socket_list;
 
 pthread_mutex_t send_mutex;       /*stops other threads from broadcasting when one is already doing it */
@@ -37,6 +37,7 @@ int main(int argc , char *argv[])
 { 
     //mutex and semaphore initialization:
     /* initialize mutex */
+    printf("Server up!");
     pthread_mutex_init(&send_mutex, NULL);
     pthread_mutex_init(&broadcast_mutex, NULL);
  
@@ -91,7 +92,7 @@ int main(int argc , char *argv[])
         new_sock = malloc(1);
         *new_sock = client_sock;
          
-        if(pthread_create(&sniffer_thread, NULL,  connection_handler, (void)new_sock) < 0)
+        if(pthread_create(&sniffer_thread, NULL,  connection_handler, (void*)new_sock) < 0)
         {
             perror("Could Not Create Thread");
             return 1;
@@ -119,14 +120,14 @@ void *connection_handler(void *socket_desc)
     User new_user;
 
     //First Message of Connection
-    strcpy(server_message, "Welcome to the Koi Fish Messenger! Enter your Username:\n");
+    strcpy(server_message, "0 - Welcome to the Koi Fish Messenger! Enter your Username:\n");
     send(sock, server_message, strlen(server_message), 0);
     
     //Receives 
     if(read_size = recv(sock, username, USERNAME_SIZE, 0) > 0)
     {
         new_user.sock = sock;
-        srtcpy(new_user.name, username);
+        strcpy(new_user.name, username);
         insert(&socket_list, &new_user);
     }
 
@@ -162,21 +163,24 @@ void *connection_handler(void *socket_desc)
 void broadcast(int *socket, char *message, int messageSize)
 {  
     //Declaring the message element. The struct is defined up in the code
-    messageCall myMessage;
-    myMessage.message = message;
-    myMessage.sock = *socket;
-    myMessage.messageSize = messageSize;
-    myMessage.numOfSocks = getSize(socket_list);
+    
     
     int i;
     //for each socket in the socket list: create a thread
-    for(i = myMessage.numOfSocks; i > -1; i--)
+    for(i = getSize(socket_list); i > -1; i--)
     {
-        myMessage.index = i;
+        //----------------------------------------------------------------------------------------------------------
+        messageCall *myMessage;
+        myMessage->message = message;
+        myMessage->sock = *socket;
+        myMessage->messageSize = messageSize;
+        myMessage->numOfSocks = getSize(socket_list);
+    
+        myMessage->index = i;
         pthread_t broadcaster;
         //This function receives a copy of the struct because this struct changes for every for loop;
-        pthread_create(&broadcaster, NULL,  sendToAll, &myMessage);
-
+        pthread_create(&broadcaster, NULL,  sendToAll, (void*) myMessage); //<-----------------------
+//----------------------------------------------------------------------------------------------------------------
         //Do we have to join threads? No because it would kill paralelism! (if I got it right, haha)
         //See this for an explanation: http://pubs.opengroup.org/onlinepubs/7908799/xsh/pthread_join.html
         //pthread_join(&broadcaster, NULL);
@@ -185,19 +189,21 @@ void broadcast(int *socket, char *message, int messageSize)
 }
 
 
-void sendToAll(messageCall myMessage)
+void *sendToAll(void *myMessage) //(messageCall myMessage)
 {
+    messageCall thisMessage = * (messageCall*) myMessage;
+    
     //socket that will receive the message
-    int socket = getSock(socket_list, myMessage.index);
+    int socket = getSock(socket_list, thisMessage.index);
     //number of sockets to receive message. Sender socket doesn't receive
-    int number = (myMessage.numOfSocks) - 1;
+    int number = (thisMessage.numOfSocks) - 1;
 
     //if socket is the broadcaster, do nothing
-    if(socket != myMessage.sock)
+    if(socket != thisMessage.sock)
     {
         //send message. Note that myMessage.message is a char*, don't know if will work
         //if not, we have to find a way to make it into a char [MESSAGE_SIZE]
-        send(socket, myMessage.message, myMessage.messageSize, 0);
+        send(socket, thisMessage.message, thisMessage.messageSize, 0);
         /* 
         entering critical section with  mutex
         critical section to protect threads_sent
@@ -218,4 +224,3 @@ void sendToAll(messageCall myMessage)
         }
     }
 }
-
