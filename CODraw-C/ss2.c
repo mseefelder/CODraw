@@ -110,6 +110,7 @@ void *connection_handler(void *socket_desc)
     while( (read_size = recv(sock , client_message , MESSAGE_SIZE , 0)) > 0 )
     {
         //Send the message back to client
+        printf("%d : %s \n", sock, client_message);
         write(sock , client_message , strlen(client_message));
         memset(&server_message[0], 0, MESSAGE_SIZE);
         memset(&client_message[0], 0, MESSAGE_SIZE);

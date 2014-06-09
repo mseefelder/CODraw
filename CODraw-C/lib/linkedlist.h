@@ -50,7 +50,7 @@ Node *newList()
   newNode->nextNode = NULL;
   newNode->prevNode = NULL;
 
-  printf("lista criada");
+  //printf("lista criada");
   return newNode;
 }
 

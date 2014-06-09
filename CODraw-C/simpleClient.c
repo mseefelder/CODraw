@@ -31,7 +31,7 @@ int main(int argc , char *argv[])
      
     server.sin_addr.s_addr = inet_addr("127.0.0.1");
     server.sin_family = AF_INET;
-    server.sin_port = htons( 8888 );
+    server.sin_port = htons( 8080 );
  
     //Connect to remote server
     if (connect(sock , (struct sockaddr *)&server , sizeof(server)) < 0)
@@ -57,10 +57,10 @@ int main(int argc , char *argv[])
                 printf("Entering message...");
                 //scanf("%s" , message);
 
-                //fgets( draft, sizeof(draft), stdin );
-                //sscanf(draft, "%s", message );
+                fgets( draft, sizeof(draft), stdin );
+                sscanf(draft, "%s", message );
 
-                strcpy(message, "Marcos");
+                //strcpy(message, "Marcos");
 
                 printf("Sending message");
                 if(send(sock , message , strlen(message) , 0) < 0)   //user sending nickname to server
